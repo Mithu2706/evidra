@@ -1,0 +1,124 @@
+{
+  "$defs": {
+    "Claim": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "quantitative",
+            "technical",
+            "market",
+            "business",
+            "impact",
+            "novelty",
+            "other"
+          ],
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "type": "array"
+        },
+        "supporting_evidence_found": {
+          "description": "True only if the submission itself contains data/method backing the claim",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "category",
+        "evidence",
+        "supporting_evidence_found"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TopicEvidence": {
+      "properties": {
+        "topic": {
+          "description": "Machine key, e.g. problem, solution, architecture, impact",
+          "type": "string"
+        },
+        "label": {
+          "description": "Human label, e.g. 'Problem definition'",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "topic",
+        "label",
+        "evidence"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "overview": {
+      "description": "One or two neutral sentences: what is the team proposing?",
+      "type": "string"
+    },
+    "target_users": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "topics": {
+      "items": {
+        "$ref": "#/$defs/TopicEvidence"
+      },
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "overview",
+    "target_users",
+    "topics",
+    "claims"
+  ],
+  "type": "object",
+  "additionalProperties": false
+}

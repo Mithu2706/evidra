@@ -1,0 +1,471 @@
+{
+  "$defs": {
+    "BriefProvenance": {
+      "properties": {
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model"
+        },
+        "pipeline_version": {
+          "title": "Pipeline Version",
+          "type": "string"
+        },
+        "stages": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Stages",
+          "type": "array"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "model",
+        "pipeline_version",
+        "stages",
+        "note"
+      ],
+      "title": "BriefProvenance",
+      "type": "object"
+    },
+    "EvidenceHighlight": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "evidence"
+      ],
+      "title": "EvidenceHighlight",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "title": "Slide Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "page_number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Number"
+        },
+        "verified": {
+          "default": false,
+          "title": "Verified",
+          "type": "boolean"
+        },
+        "via": {
+          "default": "unknown",
+          "enum": [
+            "text",
+            "speaker_notes",
+            "ocr",
+            "unknown"
+          ],
+          "title": "Via",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "IntegrityFlag": {
+      "description": "A single integrity observation. Deliberately descriptive, not accusatory.",
+      "properties": {
+        "slide_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slide Id"
+        },
+        "type": {
+          "enum": [
+            "not_visible_in_render",
+            "low_contrast_text",
+            "invisible_text_layer",
+            "tiny_text",
+            "off_slide_content",
+            "hidden_slide",
+            "instruction_like_text",
+            "speaker_note_instruction",
+            "visible_evaluator_address",
+            "visual_check_unavailable"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "no_discrepancy_detected",
+            "potential_discrepancy",
+            "suspicious_instruction_detected",
+            "manual_review_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "location": {
+          "default": "slide_text",
+          "enum": [
+            "slide_text",
+            "speaker_notes",
+            "slide"
+          ],
+          "title": "Location",
+          "type": "string"
+        },
+        "excerpt": {
+          "default": "",
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "withheld_from_ai": {
+          "default": false,
+          "title": "Withheld From Ai",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "title": "IntegrityFlag",
+      "type": "object"
+    },
+    "IntegritySummary": {
+      "properties": {
+        "status": {
+          "enum": [
+            "no_discrepancy_detected",
+            "potential_discrepancy",
+            "suspicious_instruction_detected",
+            "manual_review_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "flags": {
+          "items": {
+            "$ref": "#/$defs/IntegrityFlag"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "limitations": {
+          "title": "Limitations",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "flags",
+        "limitations"
+      ],
+      "title": "IntegritySummary",
+      "type": "object"
+    },
+    "NotAssessedItem": {
+      "properties": {
+        "area": {
+          "title": "Area",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "slide_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slide Id"
+        }
+      },
+      "required": [
+        "area",
+        "reason"
+      ],
+      "title": "NotAssessedItem",
+      "type": "object"
+    },
+    "RubricCoverage": {
+      "description": "Where the rubric is addressed \u2014 deliberately contains no judgement or score.",
+      "properties": {
+        "criterion_id": {
+          "title": "Criterion Id",
+          "type": "integer"
+        },
+        "criterion": {
+          "title": "Criterion",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "coverage": {
+          "enum": [
+            "addressed",
+            "limited",
+            "not_found"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "criterion",
+        "evidence",
+        "coverage"
+      ],
+      "title": "RubricCoverage",
+      "type": "object"
+    },
+    "Strength": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "evidence"
+      ],
+      "title": "Strength",
+      "type": "object"
+    },
+    "VerifyItem": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "description": "Short headline, e.g. 'Claimed 40% cost reduction'",
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "unsupported_claim",
+            "feasibility_gap",
+            "missing_information",
+            "potential_similarity",
+            "inconsistency",
+            "integrity"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "e.g. 'Potential similarity \u2014 human verification required.'",
+          "title": "Label"
+        },
+        "related_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Related Criteria",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "evidence"
+      ],
+      "title": "VerifyItem",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "overview": {
+      "title": "Overview",
+      "type": "string"
+    },
+    "target_users": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Users"
+    },
+    "evidence_highlights": {
+      "items": {
+        "$ref": "#/$defs/EvidenceHighlight"
+      },
+      "title": "Evidence Highlights",
+      "type": "array"
+    },
+    "strengths": {
+      "items": {
+        "$ref": "#/$defs/Strength"
+      },
+      "title": "Strengths",
+      "type": "array"
+    },
+    "verify_these": {
+      "items": {
+        "$ref": "#/$defs/VerifyItem"
+      },
+      "title": "Verify These",
+      "type": "array"
+    },
+    "not_assessed": {
+      "items": {
+        "$ref": "#/$defs/NotAssessedItem"
+      },
+      "title": "Not Assessed",
+      "type": "array"
+    },
+    "integrity": {
+      "$ref": "#/$defs/IntegritySummary"
+    },
+    "rubric_coverage": {
+      "items": {
+        "$ref": "#/$defs/RubricCoverage"
+      },
+      "title": "Rubric Coverage",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/BriefProvenance"
+    }
+  },
+  "required": [
+    "overview",
+    "evidence_highlights",
+    "strengths",
+    "verify_these",
+    "not_assessed",
+    "integrity",
+    "rubric_coverage",
+    "provenance"
+  ],
+  "title": "JudgeBrief",
+  "type": "object"
+}

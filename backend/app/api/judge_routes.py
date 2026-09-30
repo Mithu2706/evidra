@@ -117,6 +117,9 @@ def _review_payload(a: JudgeAssignment) -> dict:
             "criteria": [criterion_out(c) for c in rnd.criteria],
         },
         "document": document_out(sub),
+        # System-derived (not AI): available even when AI analysis fails.
+        "integrity": (sub.evidence_pack or {}).get("integrity"),
+        "not_assessed": (sub.evidence_pack or {}).get("not_assessed") or [],
         # Brief only — no scores. See reveal_out for the gated assessment.
         "analysis": brief_out(analysis),
         "evaluation": evaluation_out(a.evaluation),

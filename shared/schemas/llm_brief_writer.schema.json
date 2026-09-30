@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Strength": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "evidence"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "description": "What the (LLM) brief generator is asked to produce; the rest is assembled by code.",
+  "properties": {
+    "overview": {
+      "type": "string"
+    },
+    "strengths": {
+      "items": {
+        "$ref": "#/$defs/Strength"
+      },
+      "type": "array"
+    },
+    "verify_order": {
+      "description": "Ids of verify items in priority order, most important first (max 6)",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "overview",
+    "strengths",
+    "verify_order"
+  ],
+  "type": "object",
+  "additionalProperties": false
+}

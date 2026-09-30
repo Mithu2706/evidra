@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "CriterionAssessment": {
+      "properties": {
+        "criterion_id": {
+          "type": "integer"
+        },
+        "criterion": {
+          "type": "string"
+        },
+        "assessed": {
+          "description": "False if the evidence is insufficient to assess this criterion",
+          "type": "boolean"
+        },
+        "finding": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "type": "array"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/Issue"
+          },
+          "type": "array"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Preliminary score on the round's scale; null if not assessed"
+        },
+        "not_assessed_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "criterion_id",
+        "criterion",
+        "assessed",
+        "finding",
+        "evidence",
+        "issues",
+        "score",
+        "not_assessed_reason"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Issue": {
+      "properties": {
+        "type": {
+          "enum": [
+            "unsupported_claim",
+            "feasibility_gap",
+            "missing_information",
+            "potential_similarity",
+            "inconsistency",
+            "unclear"
+          ],
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "description",
+        "severity"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "criteria": {
+      "items": {
+        "$ref": "#/$defs/CriterionAssessment"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "criteria"
+  ],
+  "type": "object",
+  "additionalProperties": false
+}

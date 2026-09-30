@@ -152,7 +152,7 @@ class IntegrityAnalyzer:
             excerpt=truncate(sig.text, 220),
             detail=f"Possible hidden content: {label}."
             + (" The text resembles an instruction to evaluators." if instr else "")
-            + (f" ({sig.detail})" if sig.detail and sig.detail not in label else ""),
+            + (f" ({sig.detail})" if any(ch.isdigit() for ch in sig.detail) else ""),
             withheld_from_ai=True,
         )
 

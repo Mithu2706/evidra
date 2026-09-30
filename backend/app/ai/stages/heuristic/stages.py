@@ -425,7 +425,7 @@ def _short_claim(text: str) -> str:
 def _lower_first(text: str) -> str:
     """Lower-case the first letter unless the first word looks like an acronym or name."""
     word = text.split(" ", 1)[0]
-    if len(word) > 1 and word[1:].islower() and "-" not in word[:3]:
+    if word in ("A", "An", "The") or (len(word) > 1 and word[1:].islower() and "-" not in word[:3]):
         return text[0].lower() + text[1:]
     return text
 

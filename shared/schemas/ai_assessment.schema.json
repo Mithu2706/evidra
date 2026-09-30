@@ -1,0 +1,219 @@
+{
+  "$defs": {
+    "CriterionAssessment": {
+      "properties": {
+        "criterion_id": {
+          "title": "Criterion Id",
+          "type": "integer"
+        },
+        "criterion": {
+          "title": "Criterion",
+          "type": "string"
+        },
+        "assessed": {
+          "description": "False if the evidence is insufficient to assess this criterion",
+          "title": "Assessed",
+          "type": "boolean"
+        },
+        "finding": {
+          "title": "Finding",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/Issue"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Preliminary score on the round's scale; null if not assessed",
+          "title": "Score"
+        },
+        "not_assessed_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Assessed Reason"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "criterion",
+        "assessed",
+        "finding",
+        "evidence",
+        "issues"
+      ],
+      "title": "CriterionAssessment",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "title": "Slide Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "page_number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Number"
+        },
+        "verified": {
+          "default": false,
+          "title": "Verified",
+          "type": "boolean"
+        },
+        "via": {
+          "default": "unknown",
+          "enum": [
+            "text",
+            "speaker_notes",
+            "ocr",
+            "unknown"
+          ],
+          "title": "Via",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "Issue": {
+      "properties": {
+        "type": {
+          "enum": [
+            "unsupported_claim",
+            "feasibility_gap",
+            "missing_information",
+            "potential_similarity",
+            "inconsistency",
+            "unclear"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "description",
+        "severity"
+      ],
+      "title": "Issue",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "label": {
+      "const": "AI-generated assessment \u2014 not a final decision.",
+      "default": "AI-generated assessment \u2014 not a final decision.",
+      "title": "Label",
+      "type": "string"
+    },
+    "score_scale_max": {
+      "title": "Score Scale Max",
+      "type": "integer"
+    },
+    "overall_score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "0-100 weighted, over assessed criteria only",
+      "title": "Overall Score"
+    },
+    "assessed_weight": {
+      "description": "Share of rubric weight (0-100) that could be assessed",
+      "title": "Assessed Weight",
+      "type": "number"
+    },
+    "criteria": {
+      "items": {
+        "$ref": "#/$defs/CriterionAssessment"
+      },
+      "title": "Criteria",
+      "type": "array"
+    },
+    "engine": {
+      "title": "Engine",
+      "type": "string"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Model"
+    }
+  },
+  "required": [
+    "score_scale_max",
+    "assessed_weight",
+    "criteria",
+    "engine",
+    "model"
+  ],
+  "title": "AIAssessment",
+  "type": "object"
+}
