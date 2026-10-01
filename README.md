@@ -40,6 +40,9 @@ Open http://localhost:5173 and choose a demo account on the sign-in page
 Single-process alternative: `make build` then `make backend` — the API serves the built UI at
 http://localhost:8000.
 
+CI (GitHub Actions, `.github/workflows/ci.yml`) runs the backend tests, checks that `shared/schemas`
+is up to date, and typechecks and builds the frontend on every push to `main` and every pull request.
+
 Other commands: `make test` (pytest + typecheck), `make reset` (drop & reseed), `make schemas`
 (export shared JSON Schemas), `make demo-files` (write the demo decks to `demo-submissions/` so you
 can upload them yourself).
