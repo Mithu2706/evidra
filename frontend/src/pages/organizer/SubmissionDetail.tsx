@@ -73,7 +73,7 @@ export default function SubmissionDetailPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           {s.processing_stage && <Badge tone="accent">{PROCESSING_STAGE_LABEL[s.processing_stage] ?? s.processing_stage}…</Badge>}
-          {s.status === "processing_failed" ? <Badge tone="danger">Manual review required</Badge> : <IntegrityBadge status={s.integrity_status} />}
+          <IntegrityBadge status={s.integrity_status} submissionStatus={s.status} notAssessedCount={s.not_assessed_count} />
           <Button size="sm" icon={<RefreshCw className="h-3.5 w-3.5" />} disabled={started || Boolean(s.processing_stage)} loading={reprocess.isPending} onClick={() => reprocess.mutate()} title={started ? "Judges have already evaluated this submission" : "Re-run ingestion and analysis"}>
             Reprocess
           </Button>

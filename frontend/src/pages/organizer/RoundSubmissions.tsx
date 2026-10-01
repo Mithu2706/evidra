@@ -183,10 +183,11 @@ export default function RoundSubmissions() {
                         ) : (
                           <Badge tone={stage.tone}>{stage.label}</Badge>
                         )}
-                        {s.status === "partially_processed" && <div className="mt-1 text-[11.5px] text-warn">Partially processed</div>}
-                        {s.not_assessed_count > 0 && s.status !== "processing_failed" && <div className="mt-1 text-[11.5px] text-muted">{s.not_assessed_count} not assessed</div>}
+                        {s.not_assessed_count > 0 && s.status !== "processing_failed" && (
+                          <div className="mt-1 text-[11.5px] text-muted">{s.not_assessed_count} item{s.not_assessed_count === 1 ? "" : "s"} not assessed</div>
+                        )}
                       </td>
-                      <td className="px-3 py-3">{s.status === "processing_failed" ? <Badge tone="danger">Manual review</Badge> : <IntegrityBadge status={s.integrity_status} compact />}</td>
+                      <td className="px-3 py-3"><IntegrityBadge status={s.integrity_status} submissionStatus={s.status} notAssessedCount={s.not_assessed_count} /></td>
                       <td className="px-3 py-3">
                         {s.analysis_status === "completed" ? (
                           <Badge tone="ok">Ready</Badge>

@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { actionLabel, formatDateTime } from "../lib/format";
-import type { AuditEvent, SubmissionSummary } from "../lib/types";
+import { INTEGRITY_LABEL, actionLabel, formatDateTime } from "../lib/format";
+import type { AuditEvent, IntegrityStatus, SubmissionSummary } from "../lib/types";
 import { EmptyState } from "./ui";
 
 function tone(action: string): string {
@@ -26,14 +26,14 @@ function summary(e: AuditEvent): string | null {
     case "finding.responded":
       return `${String(d.response)} · ${d.finding}${d.note ? ` · “${d.note}”` : ""}`;
     case "submission.ingested":
-      return `${d.pages} pages · ${String(d.integrity_status).replace(/_/g, " ")} · ${d.not_assessed_items} not assessed`;
+      return `${d.pages} pages · ${INTEGRITY_LABEL[d.integrity_status as IntegrityStatus] ?? String(d.integrity_status)} · ${d.not_assessed_items} not assessed`;
     case "integrity.flagged":
       return String(d.summary ?? "");
     case "analysis.failed":
     case "submission.ingestion_failed":
       return String(d.error ?? "");
     case "analysis.completed":
-      return `${d.engine}${d.model ? ` (${d.model})` : ""} · ${d.verify_items} items to verify`;
+      return `${d.engine}${d.model ? ` (${d.model})` : ""} · ${d.verify_items} evidence checks`;
     case "assignment.created":
     case "assignment.removed":
       return String(d.judge ?? "");

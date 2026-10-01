@@ -54,7 +54,12 @@ def dashboard(db: Session, rnd: EvaluationRound) -> dict[str, Any]:
                               "reason": s.processing_error or "Document could not be processed."})
         elif s.status == "partially_processed":
             attention.append({"submission_id": s.id, "team_name": s.team_name, "kind": "partial",
-                              "reason": "Document partially processed; some content was not assessed."})
+                              "reason": "Partially assessed: some content could not be processed. Judges should "
+                                        "review those parts of the original."})
+        elif s.status == "ready" and (n := len((s.evidence_pack or {}).get("not_assessed") or [])):
+            attention.append({"submission_id": s.id, "team_name": s.team_name, "kind": "partial",
+                              "reason": f"Partially assessed: {n} item{'s' if n != 1 else ''} Evidra could not "
+                                        "reliably evaluate (e.g. images, external links)."})
         if s.integrity_status in ("potential_discrepancy", "suspicious_instruction_detected", "manual_review_required") \
                 and s.status != "processing_failed":
             integrity_warnings += 1
@@ -64,9 +69,9 @@ def dashboard(db: Session, rnd: EvaluationRound) -> dict[str, Any]:
             ai_failures += 1
             attention.append({"submission_id": s.id, "team_name": s.team_name, "kind": "ai_failed",
                               "reason": AI_FAILURE_MESSAGE})
-        if s.status in PROCESSED and not s.assignments:
+        if (s.status in PROCESSED or s.status == "processing_failed") and not s.assignments:
             attention.append({"submission_id": s.id, "team_name": s.team_name, "kind": "unassigned",
-                              "reason": "No judges assigned yet."})
+                              "reason": "No judges assigned yet — every submission needs human review."})
 
     judges: dict[int, dict[str, Any]] = {}
     for a in assignments:

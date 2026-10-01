@@ -109,6 +109,10 @@ def test_full_flow(client, tmp_root):
     dash = client.get("/api/judge/dashboard", headers=judge).json()
     item = next(a for a in dash["assignments"] if a["submission"]["id"] == sub_id)
     aid = item["id"]
+    # Workspace cards carry evidence-check counts but never an AI score.
+    assert item["submission"]["verify_count"] >= 1
+    for key in ("score", "ai_score", "overall_score", "assessment", "ai_overall_score"):
+        assert not contains_key(dash, key), f"{key} leaked on judge dashboard"
 
     # Open: brief present, no scores anywhere.
     review = client.get(f"/api/judge/assignments/{aid}", headers=judge).json()
@@ -183,6 +187,10 @@ def test_full_flow(client, tmp_root):
                    json={"criteria": [{"name": "Only", "weight": 100}]})
     assert r.status_code == 409
 
+    # The organizer dashboard groups what needs human attention.
+    attention = client.get(f"/api/rounds/{rnd['id']}/dashboard", headers=org).json()["attention"]
+    assert any(a["kind"] == "integrity" and a["submission_id"] == sub_id for a in attention)
+
     # Audit trail covers the whole flow.
     events = client.get(f"/api/rounds/{rnd['id']}/audit", headers=org, params={"submission_id": sub_id}).json()
     actions = {e["action"] for e in events["events"]}
@@ -223,3 +231,35 @@ def test_ai_failure_is_reported_not_fabricated(client, tmp_root, monkeypatch):
     assert "brief" not in detail["analysis"]
     # Slides are still available for human review.
     assert detail["document"]["slides"]
+
+
+def test_dashboard_lists_failed_and_partial_submissions(client, tmp_root):
+    """Failed uploads and partially assessed decks surface as needing human attention."""
+    from app.seed.demo_decks import build_pptx
+
+    org = login(client, "org@test.dev")
+    rnd = client.get("/api/rounds", headers=org).json()[0]
+    failed = next(d for d in DECKS if d.key == "parkpal")
+    partial = next(d for d in DECKS if d.key == "aquasense")
+    ids = {}
+    for deck, builder in ((failed, build_pdf), (partial, build_pptx)):
+        path = tmp_root / deck.filename
+        builder(deck, path)
+        with path.open("rb") as fh:
+            r = client.post(f"/api/rounds/{rnd['id']}/submissions", headers=org, data={"team_name": deck.team},
+                            files={"file": (deck.filename, fh, "application/octet-stream")})
+        assert r.status_code == 201, r.text
+        ids[deck.key] = r.json()["id"]
+
+    failed_detail = client.get(f"/api/submissions/{ids['parkpal']}", headers=org).json()
+    assert failed_detail["submission"]["status"] == "processing_failed"
+    assert failed_detail["document"]["processing"]["message"] == "Document could not be fully processed. Manual review required."
+
+    partial_detail = client.get(f"/api/submissions/{ids['aquasense']}", headers=org).json()
+    assert partial_detail["not_assessed"], "image-only slides and the external video link must be listed as not assessed"
+
+    attention = client.get(f"/api/rounds/{rnd['id']}/dashboard", headers=org).json()["attention"]
+    kinds = {(a["kind"], a["submission_id"]) for a in attention}
+    assert ("processing_failed", ids["parkpal"]) in kinds
+    assert ("unassigned", ids["parkpal"]) in kinds
+    assert ("partial", ids["aquasense"]) in kinds

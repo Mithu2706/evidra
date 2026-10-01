@@ -87,8 +87,11 @@ the audit trail have data.
 The evaluation screen has three panes: **original document** (left), **Judge Brief** (centre),
 **evaluation form** (right).
 
-1. Open a submission. The brief shows: overview, evidence (each linked to a slide), strengths,
-   **Verify These**, **Not Assessed**, **Submission Integrity** and a rubric map (no scores).
+1. Open a submission. The brief leads with **Verify These** — source-linked evidence checks grouped by
+   priority (priority = how much human attention a finding deserves, not a judgment of the
+   submission) — followed by strengths, **Not Assessed** (material Evidra could not reliably
+   evaluate), **Submission Integrity** (hidden/inconsistent content only), an evidence map and a
+   rubric map (no scores).
 2. Clicking **View Slide 6** jumps the viewer to that slide and shows the cited excerpt.
 3. Agree / disagree / unsure with any strength or Verify-These item, with an optional note.
 4. Score each criterion. **The AI score is hidden** — the server does not include it in any

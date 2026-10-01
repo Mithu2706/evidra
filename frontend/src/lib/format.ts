@@ -39,21 +39,36 @@ export function slideLabel(slideId: string, page?: number | null): string {
   return `Slide ${n}`;
 }
 
+/**
+ * Labels for the integrity / ingestion check only. They describe what the check
+ * found, never the quality or validity of the submission itself.
+ */
 export const INTEGRITY_LABEL: Record<IntegrityStatus, string> = {
-  no_discrepancy_detected: "No discrepancy detected",
-  potential_discrepancy: "Potential discrepancy",
-  suspicious_instruction_detected: "Hidden instruction-like text",
+  no_discrepancy_detected: "Integrity check: no issue detected",
+  potential_discrepancy: "Integrity review required",
+  suspicious_instruction_detected: "Integrity review required",
   manual_review_required: "Manual review required",
+};
+
+/** Longer explanation shown as a tooltip next to the badge. */
+export const INTEGRITY_HINT: Record<IntegrityStatus, string> = {
+  no_discrepancy_detected:
+    "The integrity check found no hidden or inconsistent content. This is not a verification of the submission's claims.",
+  potential_discrepancy: "Some text in the file may not be visible on the slides. Check the flagged slide.",
+  suspicious_instruction_detected:
+    "Hidden text resembling an instruction to evaluators was found and withheld from AI analysis. Check the flagged slide.",
+  manual_review_required: "The integrity check could not be completed. Review the original file.",
 };
 
 export const ASSIGNMENT_LABEL: Record<AssignmentStatus, string> = {
   assigned: "Not started",
   in_progress: "In review",
-  submitted: "Submitted · AI not yet reviewed",
+  submitted: "Submitted · compare with AI",
   completed: "Completed",
 };
 
-export const SEVERITY_LABEL: Record<Severity, string> = { high: "High priority", medium: "Medium", low: "Low" };
+/** Priority = how much human attention a finding deserves, not how good the submission is. */
+export const SEVERITY_LABEL: Record<Severity, string> = { high: "High priority", medium: "Medium priority", low: "Low priority" };
 
 export const VERIFY_TYPE_LABEL: Record<VerifyItem["type"], string> = {
   unsupported_claim: "Unsupported claim",
