@@ -82,7 +82,7 @@ export default function RoundResults() {
                   <td className="tabular px-3 py-3 text-right text-muted">{r.judging_complete ? r.revisions : "—"}</td>
                   <td className="tabular px-3 py-3 text-right text-accent-strong">{formatScore(r.ai_score)}</td>
                   <td className="px-5 py-3">
-                    <IntegrityBadge status={r.integrity_status} compact />
+                    <IntegrityBadge status={r.integrity_status} />
                   </td>
                 </tr>
               ))}

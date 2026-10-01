@@ -110,7 +110,7 @@ export default function Landing() {
       </Section>
 
       {/* 3. Brief demo */}
-      <Section id="brief" eyebrow="03 · The judge brief" title="Everything a judge needs to verify — with a link to the exact slide">
+      <Section id="brief" eyebrow="03 · The judge brief" title="The evidence that deserves a judge’s attention — linked to the exact slide">
         <BriefDemo />
       </Section>
 
@@ -136,7 +136,7 @@ export default function Landing() {
       <Section id="evidence" eyebrow="05 · Evidence-backed evaluation" title="No finding without a source">
         <div className="grid items-start gap-8 lg:grid-cols-2">
           <ul className="space-y-4 text-[14.5px] text-ink-2">
-            <Bullet>Every important finding cites a slide ID and a verbatim excerpt; the excerpt is matched against the slide before it is shown.</Bullet>
+            <Bullet>Every important finding cites a slide ID and a verbatim excerpt; the excerpt is checked against the slide, and excerpts that don't match are marked as such.</Bullet>
             <Bullet>Findings that point to slides that don't exist are dropped automatically rather than displayed without a source.</Bullet>
             <Bullet>If something could not be processed — an image-only slide, an external video link, a rendering failure — the brief says “Not assessed” instead of guessing.</Bullet>
             <Bullet>If the AI step fails, judges see “AI analysis unavailable. Human review can continue.” Nothing is fabricated.</Bullet>
@@ -312,12 +312,12 @@ function BriefDemo() {
         </p>
         <ul className="space-y-2 pt-2">
           {[
+            ["Verify these", "Source-linked findings that deserve human attention — first, by priority"],
             ["Submission overview", "What is the team proposing?"],
-            ["Evidence", "Key elements of the proposal, linked to slides"],
             ["Strengths", "Concrete positive findings"],
-            ["Verify these", "The issues most worth a human check"],
             ["Not assessed", "What the system could not inspect"],
             ["Submission integrity", "Potential hidden or inconsistent content"],
+            ["Evidence map", "Key elements of the proposal, linked to slides"],
           ].map(([t, d]) => (
             <li key={t} className="flex gap-2">
               <Link2 className="mt-1 h-3.5 w-3.5 shrink-0 text-faint" />
@@ -336,11 +336,24 @@ function BriefDemo() {
             <div className="text-[13.5px] font-semibold">BinSight — Route Zero</div>
             <div className="text-[11.5px] text-muted">Judge brief · AI score hidden until you submit</div>
           </div>
-          <Badge tone="ok" icon={<ShieldCheck className="h-3 w-3" />}>No discrepancy detected</Badge>
+          <Badge tone="ok" icon={<ShieldCheck className="h-3 w-3" />}>Integrity check: no issue detected</Badge>
         </div>
         <div className="space-y-3 p-4 text-[13px]">
           <DemoCard title="Submission overview">
             Team proposes an AI-based waste collection optimization platform for municipalities.
+          </DemoCard>
+          <DemoCard title="Verify these" strong>
+            <ol className="space-y-2.5">
+              <DemoVerify n={1} title="Claimed 40% cost reduction" sev="High priority" slide={7}>
+                No supporting experiment or benchmark was found.
+              </DemoVerify>
+              <DemoVerify n={2} title="Technical feasibility" sev="Medium priority" slide={6}>
+                The proposal depends on a hardware assumption that is not explained.
+              </DemoVerify>
+              <DemoVerify n={3} title="Differentiation" sev="Medium priority">
+                Potentially similar approaches may exist. <span className="italic text-warn">Potential similarity — human verification required.</span>
+              </DemoVerify>
+            </ol>
           </DemoCard>
           <DemoCard title="Evidence">
             <div className="grid grid-cols-[130px_1fr] gap-y-1.5">
@@ -351,19 +364,6 @@ function BriefDemo() {
               <span className="font-medium">Expected impact</span>
               <span><SlideTag n={7} /></span>
             </div>
-          </DemoCard>
-          <DemoCard title="Verify these" strong>
-            <ol className="space-y-2.5">
-              <DemoVerify n={1} title="Claimed 40% cost reduction" sev="High priority" slide={7}>
-                No supporting experiment or benchmark was found.
-              </DemoVerify>
-              <DemoVerify n={2} title="Technical feasibility" sev="Medium" slide={6}>
-                The proposal depends on a hardware assumption that is not explained.
-              </DemoVerify>
-              <DemoVerify n={3} title="Differentiation" sev="Medium">
-                Potentially similar approaches may exist. <span className="italic text-warn">Potential similarity — human verification required.</span>
-              </DemoVerify>
-            </ol>
           </DemoCard>
           <DemoCard title="Not assessed">External content linked on Slide 9 could not be accessed.</DemoCard>
         </div>
@@ -388,7 +388,7 @@ function DemoVerify({ n, title, sev, slide, children }: { n: number; title: stri
       <div>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-semibold text-ink">{title}</span>
-          <Badge tone={sev.startsWith("High") ? "danger" : "warn"}>{sev}</Badge>
+          <Badge tone={sev.startsWith("High") ? "navy" : "accent"}>{sev}</Badge>
         </div>
         <p className="mt-0.5">{children}</p>
         {slide && <div className="mt-1"><SlideTag n={slide} /></div>}

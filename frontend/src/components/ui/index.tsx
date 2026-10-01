@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { AlertTriangle, CheckCircle2, Info, Loader2, ShieldAlert, ShieldCheck, X } from "lucide-react";
 import { forwardRef, useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { INTEGRITY_LABEL } from "../../lib/format";
+import { INTEGRITY_HINT, INTEGRITY_LABEL } from "../../lib/format";
 import type { IntegrityStatus } from "../../lib/types";
 
 // ---------------------------------------------------------------------------
@@ -155,14 +155,48 @@ export function integrityTone(status: IntegrityStatus | null | undefined): Tone 
   return "warn";
 }
 
-export function IntegrityBadge({ status, compact }: { status: IntegrityStatus | null | undefined; compact?: boolean }) {
-  if (!status) return <Badge>Not checked</Badge>;
+/**
+ * Integrity / ingestion status of a submission. Wording refers only to the check,
+ * never to the merit of the submission.
+ *  - processing failed            → "Manual review required"
+ *  - hidden / inconsistent text   → "Integrity review required"
+ *  - check passed                 → "Integrity check: no issue detected"
+ * Pass `notAssessedCount` / `submissionStatus` to also show "Partially assessed".
+ */
+export function IntegrityBadge({
+  status,
+  submissionStatus,
+  notAssessedCount = 0,
+}: {
+  status: IntegrityStatus | null | undefined;
+  submissionStatus?: string | null;
+  notAssessedCount?: number;
+}) {
+  if (submissionStatus === "processing_failed") {
+    return (
+      <Badge tone="danger" icon={<ShieldAlert className="h-3 w-3" />}>
+        <span title="The document could not be fully processed. A human must review the original file.">Manual review required</span>
+      </Badge>
+    );
+  }
+  const partial = submissionStatus === "partially_processed" || notAssessedCount > 0;
   const tone = integrityTone(status);
   const Icon = tone === "ok" ? ShieldCheck : ShieldAlert;
   return (
-    <Badge tone={tone} icon={<Icon className="h-3 w-3" />}>
-      {compact && tone === "ok" ? "No discrepancy" : INTEGRITY_LABEL[status]}
-    </Badge>
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {status ? (
+        <Badge tone={tone} icon={<Icon className="h-3 w-3" />}>
+          <span title={INTEGRITY_HINT[status]}>{INTEGRITY_LABEL[status]}</span>
+        </Badge>
+      ) : (
+        <Badge>Integrity not checked</Badge>
+      )}
+      {partial && (
+        <Badge tone="neutral">
+          <span title="Some material could not be reliably evaluated (e.g. image-only content, external links, rendering issues).">Partially assessed</span>
+        </Badge>
+      )}
+    </span>
   );
 }
 

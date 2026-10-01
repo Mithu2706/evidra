@@ -9,7 +9,7 @@ import { useAuth } from "../../lib/auth";
 import type { User } from "../../lib/types";
 
 const DEMO_NOTES: Record<string, string> = {
-  "marcus@demo.evidra.app": "Four fresh assignments — best for walking the judge flow",
+  "marcus@demo.evidra.app": "Four fresh assignments — recommended for walking the judge flow",
   "elena@demo.evidra.app": "Completed reviews, including a revision after AI reveal",
   "sam@demo.evidra.app": "One completed, one in progress",
   "dana@demo.evidra.app": "Round setup, uploads, assignments, progress, results, audit",

@@ -126,18 +126,19 @@ function AssignmentCard({ a, attention }: { a: AssignmentRow; attention: boolean
           <Badge icon={<FileText className="h-3 w-3" />}>
             {s.file_type?.toUpperCase()} · {s.pages ?? "?"} slides
           </Badge>
-          <IntegrityBadge status={s.integrity_status} compact />
+          <IntegrityBadge status={s.integrity_status} submissionStatus={s.status} notAssessedCount={s.not_assessed_count} />
           {s.analysis_status === "failed" && <Badge tone="warn">AI analysis unavailable</Badge>}
-          {s.status === "processing_failed" && <Badge tone="danger">Manual review required</Badge>}
         </div>
         <div className="mt-3 flex items-center gap-4 border-t border-line pt-3 text-[12.5px] text-muted">
-          <span>
-            <span className="tabular font-semibold text-ink">{s.verify_count}</span> to verify
-            {s.high_priority_count > 0 && <span className="text-danger"> ({s.high_priority_count} high)</span>}
+          <span title="Source-linked findings Evidra suggests you check">
+            <span className="tabular font-semibold text-ink">{s.verify_count}</span> evidence check{s.verify_count === 1 ? "" : "s"}
+            {s.high_priority_count > 0 && <span className="text-ink-2"> · {s.high_priority_count} high priority</span>}
           </span>
-          <span>
-            <span className="tabular font-semibold text-ink">{s.not_assessed_count}</span> not assessed
-          </span>
+          {s.not_assessed_count > 0 && (
+            <span title="Material Evidra could not reliably evaluate">
+              <span className="tabular font-semibold text-ink">{s.not_assessed_count}</span> not assessed
+            </span>
+          )}
           <span className="ml-auto inline-flex items-center gap-1 font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
             Open <ArrowRight className="h-3.5 w-3.5" />
           </span>

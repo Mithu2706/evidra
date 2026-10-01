@@ -9,6 +9,15 @@ import { actionLabel, formatMinutes, formatRelative } from "../../lib/format";
 import type { Dashboard } from "../../lib/types";
 import { useRound } from "./RoundLayout";
 
+/** Attention categories, most urgent first. */
+const ATTENTION_GROUPS: { kind: string; label: string }[] = [
+  { kind: "processing_failed", label: "Manual review required — document could not be processed" },
+  { kind: "integrity", label: "Integrity review required" },
+  { kind: "ai_failed", label: "AI analysis unavailable — human review continues" },
+  { kind: "unassigned", label: "No judges assigned" },
+  { kind: "partial", label: "Partially assessed" },
+];
+
 const ATTENTION_ICON: Record<string, ReactNode> = {
   processing_failed: <FileWarning className="h-4 w-4 text-danger" />,
   partial: <CircleSlash className="h-4 w-4 text-warn" />,
@@ -27,6 +36,7 @@ export default function RoundOverview() {
   if (isLoading) return <LoadingBlock />;
   if (error || !data) return <ErrorBlock error={error} />;
   const t = data.totals;
+  const attentionSubs = new Set(data.attention.map((a) => a.submission_id)).size;
 
   return (
     <div className="space-y-6">
@@ -51,30 +61,52 @@ export default function RoundOverview() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label="Completion" value={`${Math.round(data.assignments.completion_pct)}%`} icon={<Gauge className="h-4 w-4" />} hint={`${data.assignments.completed} of ${data.assignments.total} reviews`} />
         <Stat label="Avg. judge review time" value={formatMinutes(data.avg_review_minutes)} icon={<Clock className="h-4 w-4" />} hint="Open → submit" />
-        <Stat label="Needs manual attention" value={data.attention.length} tone={data.attention.length ? "warn" : undefined} icon={<AlertTriangle className="h-4 w-4" />} />
-        <Stat label="Integrity warnings" value={data.integrity_warnings} tone={data.integrity_warnings ? "warn" : undefined} icon={<ShieldAlert className="h-4 w-4" />} />
+        <Stat
+          label="Need human attention"
+          value={attentionSubs}
+          tone={attentionSubs ? "warn" : undefined}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          hint="Submissions: integrity, failures, unassigned, partial"
+        />
+        <Stat
+          label="Integrity warnings"
+          value={data.integrity_warnings}
+          tone={data.integrity_warnings ? "warn" : undefined}
+          icon={<ShieldAlert className="h-4 w-4" />}
+          hint="Integrity review required"
+        />
         <Stat label="AI processing failures" value={data.ai_failures} tone={data.ai_failures ? "danger" : undefined} icon={<Bot className="h-4 w-4" />} hint="Human review continues" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <Card>
-          <CardHeader title="Requires attention" subtitle="Processing problems, integrity warnings and unassigned submissions" />
+          <CardHeader title="What needs human attention now" subtitle="Integrity reviews, failed documents, unassigned and partially assessed submissions" />
           {data.attention.length === 0 ? (
-            <EmptyState title="Nothing needs attention" description="All submissions processed without warnings." />
+            <EmptyState title="Nothing needs attention right now" description="No integrity warnings, processing failures or unassigned submissions." />
           ) : (
-            <ul className="divide-y divide-line">
-              {data.attention.map((a, i) => (
-                <li key={i}>
-                  <Link to={`/org/submissions/${a.submission_id}`} className="flex items-start gap-3 px-5 py-3 hover:bg-canvas">
-                    <span className="mt-0.5">{ATTENTION_ICON[a.kind]}</span>
-                    <div className="min-w-0">
-                      <div className="text-[13.5px] font-medium text-ink">{a.team_name}</div>
-                      <div className="text-[12.5px] text-muted">{a.reason}</div>
+            <div className="divide-y divide-line">
+              {ATTENTION_GROUPS.map((g) => {
+                const items = data.attention.filter((a) => a.kind === g.kind);
+                if (!items.length) return null;
+                return (
+                  <div key={g.kind} className="py-1">
+                    <div className="flex items-center gap-2 px-5 pb-1 pt-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">
+                      {ATTENTION_ICON[g.kind]} {g.label} <span className="tabular text-faint">· {items.length}</span>
                     </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                    <ul>
+                      {items.map((a, i) => (
+                        <li key={i}>
+                          <Link to={`/org/submissions/${a.submission_id}`} className="block px-5 py-2 pl-11 hover:bg-canvas">
+                            <div className="text-[13.5px] font-medium text-ink">{a.team_name}</div>
+                            <div className="text-[12.5px] text-muted">{a.reason}</div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Card>
 

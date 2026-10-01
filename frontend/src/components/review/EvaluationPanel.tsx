@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ArrowRight, Bot, CheckCircle2, ChevronDown, EyeOff, Lock, MessageSquarePlus, Scale, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, ChevronDown, EyeOff, Info, Lock, MessageSquarePlus, Scale, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DIRECTION_LABEL, RECOMMENDATION_LABEL, formatDateTime, formatScore, slideLabel } from "../../lib/format";
 import type { AIAssessment, Criterion, CriterionScore, Evaluation, ReviewPayload } from "../../lib/types";
@@ -51,25 +51,48 @@ export function EvaluationPanel({
   onReveal,
   onFinalize,
   onViewSlide,
+  onDraftChange,
 }: {
   payload: ReviewPayload;
   onSubmit: (b: SubmitBody) => Promise<void>;
   onReveal: () => Promise<void>;
   onFinalize: (b: FinalizeBody) => Promise<void>;
   onViewSlide: ViewSlide;
+  /** Reports whether the judge has started scoring (drives the step indicator). */
+  onDraftChange?: (hasScores: boolean) => void;
 }) {
   const { evaluation, reveal, revision, round } = payload;
   if (revision && evaluation) return <CompletedView payload={payload} />;
   if (evaluation && reveal) return <RevealView payload={payload} onFinalize={onFinalize} onViewSlide={onViewSlide} />;
   if (evaluation) return <SubmittedView evaluation={evaluation} onReveal={onReveal} />;
-  return <ScoringForm assignmentId={payload.assignment.id} criteria={round.criteria} max={round.score_scale_max} onSubmit={onSubmit} />;
+  return (
+    <ScoringForm
+      assignmentId={payload.assignment.id}
+      criteria={round.criteria}
+      max={round.score_scale_max}
+      onSubmit={onSubmit}
+      onDraftChange={onDraftChange}
+    />
+  );
 }
 
 // ---------------------------------------------------------------------------
 // 1. Independent scoring
 // ---------------------------------------------------------------------------
 
-function ScoringForm({ assignmentId, criteria, max, onSubmit }: { assignmentId: number; criteria: Criterion[]; max: number; onSubmit: (b: SubmitBody) => Promise<void> }) {
+function ScoringForm({
+  assignmentId,
+  criteria,
+  max,
+  onSubmit,
+  onDraftChange,
+}: {
+  assignmentId: number;
+  criteria: Criterion[];
+  max: number;
+  onSubmit: (b: SubmitBody) => Promise<void>;
+  onDraftChange?: (hasScores: boolean) => void;
+}) {
   const [draft, setDraft] = useState<Draft>(() => loadDraft(assignmentId));
   const [openNotes, setOpenNotes] = useState<Record<number, boolean>>({});
   const [confirm, setConfirm] = useState(false);
@@ -83,6 +106,9 @@ function ScoringForm({ assignmentId, criteria, max, onSubmit }: { assignmentId: 
       /* ignore */
     }
   }, [assignmentId, draft]);
+
+  const hasScores = Object.keys(draft.scores).length > 0;
+  useEffect(() => onDraftChange?.(hasScores), [hasScores, onDraftChange]);
 
   const total = weighted(criteria, draft.scores, max);
   const scored = criteria.filter((c) => draft.scores[c.id] !== undefined).length;
@@ -300,19 +326,21 @@ function RevealView({ payload, onFinalize, onViewSlide }: { payload: ReviewPaylo
             <div className="animate-slide-up rounded-xl border border-line-strong bg-surface shadow-card">
               <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
                 <Sparkles className="h-4 w-4 text-accent" />
-                <span className="text-[13px] font-semibold text-ink">AI preliminary assessment</span>
+                <span className="text-[13px] font-semibold text-ink">Evidra's preliminary assessment</span>
               </div>
               <div className="px-4 py-3">
-                <div className="rounded-md bg-accent-soft px-2.5 py-1.5 text-[12px] font-medium text-accent-strong">{assessment.label}</div>
-                <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="flex items-start gap-2 rounded-md border border-[#d6e0fb] bg-accent-soft px-2.5 py-2 text-[12.5px] text-accent-strong">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    <span className="font-semibold">{assessment.label}</span> Your independent evaluation remains the decision of record.
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
                   <ScoreBox label="Your score" value={evaluation!.weighted_score} strong />
                   <ScoreBox label="AI preliminary" value={assessment.overall_score} />
+                  <DiffBox value={assessment.overall_score === null ? null : assessment.overall_score - evaluation!.weighted_score} />
                 </div>
-                {assessment.overall_score !== null && (
-                  <p className="tabular mt-2 text-[12px] text-muted">
-                    Difference: {formatSigned(assessment.overall_score - evaluation!.weighted_score)} points (AI − yours)
-                  </p>
-                )}
+                <p className="mt-1.5 text-[11.5px] text-faint">Weighted scores out of 100 · difference = AI − yours</p>
                 {assessment.assessed_weight < 100 && (
                   <p className="mt-1.5 text-[12px] text-warn">
                     The AI could assess only {formatScore(assessment.assessed_weight)}% of the rubric weight; its score covers assessed criteria only.
@@ -411,17 +439,23 @@ function RevealView({ payload, onFinalize, onViewSlide }: { payload: ReviewPaylo
 
 function formatSigned(v: number): string {
   const r = Math.round(v * 10) / 10;
-  return `${r > 0 ? "+" : ""}${formatScore(r)}`;
+  return r > 0 ? `+${formatScore(r)}` : r < 0 ? `−${formatScore(-r)}` : "0";
+}
+
+function DiffBox({ value }: { value: number | null }) {
+  return (
+    <div className="rounded-lg border border-dashed border-line-strong px-2.5 py-2" title="AI preliminary minus your score">
+      <div className="whitespace-nowrap text-[11px] text-muted">Difference</div>
+      <div className="tabular text-[20px] font-semibold leading-tight text-ink-2">{value === null ? "—" : formatSigned(value)}</div>
+    </div>
+  );
 }
 
 function ScoreBox({ label, value, strong }: { label: string; value: number | null | undefined; strong?: boolean }) {
   return (
-    <div className={clsx("rounded-lg border px-3 py-2", strong ? "border-navy/20 bg-navy/[0.03]" : "border-line")}>
-      <div className="text-[11.5px] text-muted">{label}</div>
-      <div className="tabular text-[22px] font-semibold leading-tight">
-        {formatScore(value)}
-        <span className="text-[12px] font-normal text-faint"> /100</span>
-      </div>
+    <div className={clsx("rounded-lg border px-2.5 py-2", strong ? "border-navy/20 bg-navy/[0.03]" : "border-line")}>
+      <div className="whitespace-nowrap text-[11px] text-muted">{label}</div>
+      <div className="tabular text-[20px] font-semibold leading-tight">{formatScore(value)}</div>
     </div>
   );
 }
@@ -514,26 +548,33 @@ function CompletedView({ payload }: { payload: ReviewPayload }) {
     <div className="scroll-thin h-full space-y-4 overflow-y-auto p-4">
       <div className="rounded-xl border border-[#c9ead8] bg-ok-soft px-4 py-3">
         <div className="flex items-center gap-2 text-[14px] font-semibold text-ok">
-          <CheckCircle2 className="h-4 w-4" /> Evaluation complete
+          <CheckCircle2 className="h-4 w-4" /> Final evaluation recorded
         </div>
         <p className="mt-0.5 text-[12.5px] text-[#0b5535]">
-          {r.decision === "revised" ? "You revised your score after reviewing the AI assessment." : "You kept your independent score."} Finished{" "}
-          {formatDateTime(payload.assignment.completed_at)}.
+          {r.decision === "revised" ? "You revised your score after reviewing the AI assessment." : "You kept your independent score."}
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <MiniScore label="Your initial" value={r.human_initial_score} />
+        <MiniScore label="Initial (yours)" value={r.human_initial_score} />
         <MiniScore label="AI preliminary" value={r.ai_score} muted />
         <MiniScore label="Final (yours)" value={r.human_revised_score} strong />
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Badge tone={r.decision === "revised" ? "accent" : "neutral"} icon={<Scale className="h-3 w-3" />}>
-          {r.decision === "revised" ? "Revised" : "Kept"}
+          {r.decision === "revised" ? `Revised ${formatSigned(r.initial_to_revised_difference)} points` : "Kept initial score"}
         </Badge>
         {r.decision === "revised" && <Badge>{DIRECTION_LABEL[r.revision_direction]}</Badge>}
         {e.recommendation && <Badge tone="navy">{RECOMMENDATION_LABEL[e.recommendation]}</Badge>}
       </div>
+      <dl className="tabular grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[12px] text-muted">
+        <dt>Submitted</dt>
+        <dd className="text-ink-2">{formatDateTime(e.submitted_at)}</dd>
+        <dt>AI revealed</dt>
+        <dd className="text-ink-2">{formatDateTime(payload.reveal?.revealed_at)}</dd>
+        <dt>Finalized</dt>
+        <dd className="text-ink-2">{formatDateTime(payload.assignment.completed_at)}</dd>
+      </dl>
       {r.revision_reason && (
         <div className="rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px]">
           <div className="eyebrow mb-1">Reason for revision</div>
@@ -572,7 +613,7 @@ function CompletedView({ payload }: { payload: ReviewPayload }) {
         </div>
       )}
       <p className="flex items-center gap-1.5 text-[11.5px] text-faint">
-        <Lock className="h-3 w-3" /> Recorded in the audit trail. Your final score is the decision of record.
+        <Lock className="h-3 w-3" /> Initial score, AI preliminary assessment, final score and reason are recorded in the audit trail.
       </p>
     </div>
   );
