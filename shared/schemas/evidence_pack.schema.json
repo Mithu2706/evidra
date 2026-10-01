@@ -1,0 +1,385 @@
+{
+  "$defs": {
+    "EvidenceUnit": {
+      "description": "One slide/page (or, in future, one file / video segment / web page).",
+      "properties": {
+        "slide_id": {
+          "description": "Stable id, e.g. slide_06",
+          "title": "Slide Id",
+          "type": "string"
+        },
+        "page_number": {
+          "title": "Page Number",
+          "type": "integer"
+        },
+        "source_type": {
+          "default": "slide",
+          "enum": [
+            "slide",
+            "document",
+            "github",
+            "video",
+            "website"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "source_location": {
+          "$ref": "#/$defs/SourceLocation"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "text": {
+          "default": "",
+          "title": "Text",
+          "type": "string"
+        },
+        "speaker_notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speaker Notes"
+        },
+        "image_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Path"
+        },
+        "ocr_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ocr Text"
+        },
+        "ocr_status": {
+          "default": "not_run",
+          "enum": [
+            "completed",
+            "empty",
+            "failed",
+            "unavailable",
+            "not_run"
+          ],
+          "title": "Ocr Status",
+          "type": "string"
+        },
+        "has_visual_content": {
+          "default": false,
+          "title": "Has Visual Content",
+          "type": "boolean"
+        },
+        "links": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "integrity_flags": {
+          "items": {
+            "$ref": "#/$defs/IntegrityFlag"
+          },
+          "title": "Integrity Flags",
+          "type": "array"
+        },
+        "processing_notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Processing Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "slide_id",
+        "page_number",
+        "source_location"
+      ],
+      "title": "EvidenceUnit",
+      "type": "object"
+    },
+    "IntegrityFlag": {
+      "description": "A single integrity observation. Deliberately descriptive, not accusatory.",
+      "properties": {
+        "slide_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slide Id"
+        },
+        "type": {
+          "enum": [
+            "not_visible_in_render",
+            "low_contrast_text",
+            "invisible_text_layer",
+            "tiny_text",
+            "off_slide_content",
+            "hidden_slide",
+            "instruction_like_text",
+            "speaker_note_instruction",
+            "visible_evaluator_address",
+            "visual_check_unavailable"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "no_discrepancy_detected",
+            "potential_discrepancy",
+            "suspicious_instruction_detected",
+            "manual_review_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "location": {
+          "default": "slide_text",
+          "enum": [
+            "slide_text",
+            "speaker_notes",
+            "slide"
+          ],
+          "title": "Location",
+          "type": "string"
+        },
+        "excerpt": {
+          "default": "",
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "withheld_from_ai": {
+          "default": false,
+          "title": "Withheld From Ai",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "title": "IntegrityFlag",
+      "type": "object"
+    },
+    "IntegrityReport": {
+      "properties": {
+        "status": {
+          "enum": [
+            "no_discrepancy_detected",
+            "potential_discrepancy",
+            "suspicious_instruction_detected",
+            "manual_review_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "flags": {
+          "items": {
+            "$ref": "#/$defs/IntegrityFlag"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "method": {
+          "default": "",
+          "title": "Method",
+          "type": "string"
+        },
+        "limitations": {
+          "default": "This check compares the document's text layer with the rendered slides and scans speaker notes. It cannot detect every form of manipulation.",
+          "title": "Limitations",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "summary"
+      ],
+      "title": "IntegrityReport",
+      "type": "object"
+    },
+    "NotAssessedItem": {
+      "properties": {
+        "area": {
+          "title": "Area",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "slide_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slide Id"
+        }
+      },
+      "required": [
+        "area",
+        "reason"
+      ],
+      "title": "NotAssessedItem",
+      "type": "object"
+    },
+    "SourceLocation": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "slide_number",
+            "page_number",
+            "file_path",
+            "timestamp",
+            "url"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "SourceLocation",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "submission_id": {
+      "title": "Submission Id",
+      "type": "integer"
+    },
+    "source_file": {
+      "title": "Source File",
+      "type": "string"
+    },
+    "file_type": {
+      "enum": [
+        "pdf",
+        "pptx"
+      ],
+      "title": "File Type",
+      "type": "string"
+    },
+    "page_count": {
+      "title": "Page Count",
+      "type": "integer"
+    },
+    "units": {
+      "items": {
+        "$ref": "#/$defs/EvidenceUnit"
+      },
+      "title": "Units",
+      "type": "array"
+    },
+    "not_assessed": {
+      "items": {
+        "$ref": "#/$defs/NotAssessedItem"
+      },
+      "title": "Not Assessed",
+      "type": "array"
+    },
+    "integrity": {
+      "$ref": "#/$defs/IntegrityReport"
+    },
+    "processing_status": {
+      "default": "complete",
+      "enum": [
+        "complete",
+        "partial"
+      ],
+      "title": "Processing Status",
+      "type": "string"
+    },
+    "ingestion": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Ingestion",
+      "type": "object"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "submission_id",
+    "source_file",
+    "file_type",
+    "page_count",
+    "units",
+    "integrity",
+    "created_at"
+  ],
+  "title": "EvidencePack",
+  "type": "object"
+}

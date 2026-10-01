@@ -1,0 +1,103 @@
+{
+  "$defs": {
+    "EvidenceRef": {
+      "properties": {
+        "slide_id": {
+          "description": "Stable unit id from the evidence pack, e.g. slide_05",
+          "type": "string"
+        },
+        "excerpt": {
+          "description": "Short verbatim excerpt from that slide supporting the point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slide_id",
+        "excerpt"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "VerifyItem": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "description": "Short headline, e.g. 'Claimed 40% cost reduction'",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "unsupported_claim",
+            "feasibility_gap",
+            "missing_information",
+            "potential_similarity",
+            "inconsistency",
+            "integrity"
+          ],
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "type": "array"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "e.g. 'Potential similarity \u2014 human verification required.'"
+        },
+        "related_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "evidence",
+        "label",
+        "related_criteria"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/VerifyItem"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "type": "object",
+  "additionalProperties": false
+}
