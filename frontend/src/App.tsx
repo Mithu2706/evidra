@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
+import { DemoStarting, DemoUnavailable } from "./components/DemoMode";
 import { LoadingBlock } from "./components/ui";
+import { DEMO_MODE } from "./lib/api";
 import { useAuth } from "./lib/auth";
 import type { Role } from "./lib/types";
 import JudgeDashboard from "./pages/judge/JudgeDashboard";
@@ -22,7 +24,8 @@ import Login from "./pages/public/Login";
 function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <LoadingBlock />;
+  if (loading) return DEMO_MODE ? <DemoStarting /> : <LoadingBlock />;
+  if (!user && DEMO_MODE) return <DemoUnavailable />;
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (user.role !== role) return <Navigate to={user.role === "organizer" ? "/org" : "/judge"} replace />;
   return <>{children}</>;
@@ -31,7 +34,9 @@ function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      {/* Public demo skips the landing page and opens the judge dashboard; the landing page stays at /about. */}
+      <Route path="/" element={DEMO_MODE ? <Navigate to="/judge" replace /> : <Landing />} />
+      <Route path="/about" element={<Landing />} />
       <Route path="/login" element={<Login />} />
 
       <Route element={<RequireRole role="organizer"><AppShell /></RequireRole>}>

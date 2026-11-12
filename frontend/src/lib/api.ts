@@ -1,5 +1,20 @@
 const TOKEN_KEY = "evidra.token";
 
+/**
+ * Backend origin for split hosting (e.g. frontend on Vercel, API on Render).
+ * Empty in local dev, where requests stay relative ("/api/...") and the Vite
+ * proxy forwards them.
+ */
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").trim().replace(/\/+$/, "");
+
+/** Public guest demo: sign visitors in automatically (backend needs EVIDRA_DEMO_MODE=true). */
+export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
+/** Prefix backend paths ("/api/...") with the API origin; leaves absolute URLs untouched. */
+export function apiUrl(path: string): string {
+  return path.startsWith("/") ? `${API_BASE_URL}${path}` : path;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -45,7 +60,7 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
     headers.set("Content-Type", "application/json");
     body = JSON.stringify(init.json);
   }
-  const res = await fetch(path, { ...init, headers, body });
+  const res = await fetch(apiUrl(path), { ...init, headers, body });
   if (res.status === 401 && token) {
     setToken(null);
     window.dispatchEvent(new Event("evidra:unauthorized"));
@@ -68,7 +83,8 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
 /** URLs used directly by <img>/<a> can't send headers, so the token rides along as a query param. */
 export function authUrl(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
+  const url = apiUrl(path);
   const token = getToken();
-  if (!token) return path;
-  return `${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
+  if (!token) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
 }

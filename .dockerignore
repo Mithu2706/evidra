@@ -1,0 +1,12 @@
+.git
+.github
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+frontend/dist
+backend/data
+data
+demo-submissions
+.env
+.env.*
+*.tsbuildinfo

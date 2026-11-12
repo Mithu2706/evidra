@@ -4,8 +4,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../../components/Logo";
 import { Button, Callout } from "../../components/ui";
-import { api } from "../../lib/api";
-import { useAuth } from "../../lib/auth";
+import { DEMO_MODE, api } from "../../lib/api";
+import { useAuth, type DemoRole } from "../../lib/auth";
 import type { User } from "../../lib/types";
 
 const DEMO_NOTES: Record<string, string> = {
@@ -16,7 +16,7 @@ const DEMO_NOTES: Record<string, string> = {
 };
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, login, demoLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -43,6 +43,19 @@ export default function Login() {
     }
   }
 
+  async function enterAsGuest(role: DemoRole) {
+    setBusy(role);
+    setError(null);
+    try {
+      const u = await demoLogin(role);
+      navigate(u.role === "organizer" ? "/org" : "/judge");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     void signIn(email, password);
@@ -57,6 +70,20 @@ export default function Login() {
         <div className="my-auto w-full max-w-sm py-12">
           <h1 className="text-[24px] font-semibold tracking-tight">Sign in</h1>
           <p className="mt-1 text-[14px] text-muted">Organizers and judges use the same sign-in.</p>
+          {DEMO_MODE && (
+            <div className="mt-6 rounded-xl border border-line bg-surface p-4">
+              <div className="text-[13.5px] font-medium text-ink">Public demo — no account needed</div>
+              <p className="mt-0.5 text-[12.5px] text-muted">Explore a fictional round with sample pitch decks.</p>
+              <div className="mt-3 flex gap-2">
+                <Button variant="primary" size="sm" loading={busy === "judge"} disabled={busy !== null} onClick={() => void enterAsGuest("judge")}>
+                  Continue as judge
+                </Button>
+                <Button variant="ghost" size="sm" loading={busy === "organizer"} disabled={busy !== null} onClick={() => void enterAsGuest("organizer")}>
+                  Continue as organizer
+                </Button>
+              </div>
+            </div>
+          )}
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
               <label className="label" htmlFor="email">Email</label>

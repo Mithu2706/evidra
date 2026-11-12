@@ -26,13 +26,19 @@ async def lifespan(_: FastAPI):
     init_db()
     settings = get_settings()
     if settings.environment != "test" and settings.auto_seed:
-        with SessionLocal() as db:
-            empty = db.scalar(select(Organization.id).limit(1)) is None
-        if empty:
-            from .seed.seed import seed
+        from .seed.seed import seed
 
-            log.info("Empty database — seeding demo data (first start takes ~30-60s for OCR)…")
-            seed()
+        if settings.demo_mode:
+            # Public demo: every (cold) start rebuilds the fictional data so
+            # each visitor session begins from the same clean state.
+            log.info("Demo mode — resetting and reseeding demo data…")
+            seed(reset=True)
+        else:
+            with SessionLocal() as db:
+                empty = db.scalar(select(Organization.id).limit(1)) is None
+            if empty:
+                log.info("Empty database — seeding demo data (first start takes ~30-60s for OCR)…")
+                seed()
     yield
 
 
@@ -59,6 +65,7 @@ def health():
     pipe = ingestion_pipeline()
     return {
         "status": "ok",
+        "demo_mode": settings.demo_mode,
         "ai_engine": settings.ai_engine,
         "ai_model": settings.anthropic_model if settings.ai_engine == "anthropic" else None,
         "ai_configured": settings.ai_engine != "anthropic" or bool(settings.anthropic_api_key),
