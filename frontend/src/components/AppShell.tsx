@@ -1,7 +1,9 @@
 import clsx from "clsx";
 import { LogOut } from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { DEMO_MODE } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { DemoBanner, DemoRoleSwitcher } from "./DemoMode";
 import { Logo } from "./Logo";
 
 export function AppShell({ fullBleed = false }: { fullBleed?: boolean }) {
@@ -17,11 +19,12 @@ export function AppShell({ fullBleed = false }: { fullBleed?: boolean }) {
   return (
     <div className={clsx("flex min-h-screen flex-col", fullBleed && "h-screen")}>
       <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur">
-        <div className={clsx("flex h-14 items-center gap-6", fullBleed ? "px-4" : "mx-auto max-w-[1320px] px-6")}>
+        {DEMO_MODE && <DemoBanner />}
+        <div className={clsx("flex h-14 items-center gap-3 sm:gap-6", fullBleed ? "px-4" : "mx-auto max-w-[1320px] px-4 sm:px-6")}>
           <Link to={user?.role === "organizer" ? "/org" : "/judge"} className="shrink-0">
             <Logo />
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="hidden items-center gap-1 sm:flex">
             {links.map((l) => (
               <NavLink
                 key={l.to}
@@ -29,7 +32,7 @@ export function AppShell({ fullBleed = false }: { fullBleed?: boolean }) {
                 end={l.end}
                 className={({ isActive }) =>
                   clsx(
-                    "rounded-md px-2.5 py-1.5 text-[13.5px] font-medium transition-colors",
+                    "whitespace-nowrap rounded-md px-2.5 py-1.5 text-[13.5px] font-medium transition-colors",
                     isActive ? "bg-sunken text-ink" : "text-muted hover:text-ink",
                   )
                 }
@@ -38,7 +41,8 @@ export function AppShell({ fullBleed = false }: { fullBleed?: boolean }) {
               </NavLink>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            {DEMO_MODE && <DemoRoleSwitcher />}
             <span className="hidden rounded-md border border-line px-2 py-0.5 text-[11.5px] font-medium capitalize text-muted sm:inline">
               {user?.role}
             </span>
@@ -46,23 +50,25 @@ export function AppShell({ fullBleed = false }: { fullBleed?: boolean }) {
               <div className="text-[13px] font-medium text-ink">{user?.name}</div>
               <div className="text-[11.5px] text-muted">{user?.organization}</div>
             </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-white">
+            <div className={clsx("h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-white", DEMO_MODE ? "hidden sm:flex" : "flex")}>
               {user?.name
                 .split(" ")
                 .map((p) => p[0])
                 .slice(0, 2)
                 .join("")}
             </div>
-            <button
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-              className="rounded-md p-1.5 text-muted hover:bg-sunken hover:text-ink"
-              title="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            {!DEMO_MODE && (
+              <button
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+                className="rounded-md p-1.5 text-muted hover:bg-sunken hover:text-ink"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </header>

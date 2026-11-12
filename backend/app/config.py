@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     secret_key: str = Field("dev-only-change-me", alias="EVIDRA_SECRET_KEY")
     token_ttl_hours: int = Field(12, alias="EVIDRA_TOKEN_TTL_HOURS")
     auto_seed: bool = Field(True, alias="EVIDRA_AUTO_SEED")
+    # Public guest demo: POST /api/auth/demo signs visitors in as a seeded demo
+    # account without a password, and the demo data is rebuilt on every start.
+    # Never enable this for a deployment that holds real data.
+    demo_mode: bool = Field(False, alias="EVIDRA_DEMO_MODE")
     cors_origins: str = Field(
         "http://localhost:5173,http://127.0.0.1:5173", alias="EVIDRA_CORS_ORIGINS"
     )
@@ -59,7 +63,8 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        # Browsers send Origin without a trailing slash; tolerate one in config.
+        return [o.strip().rstrip("/") for o in self.cors_origins.split(",") if o.strip()]
 
 
 @lru_cache

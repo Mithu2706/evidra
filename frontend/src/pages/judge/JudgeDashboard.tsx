@@ -111,7 +111,7 @@ export default function JudgeDashboard() {
 function AssignmentCard({ a, attention }: { a: AssignmentRow; attention: boolean }) {
   const s = a.submission;
   return (
-    <Link to={`/judge/review/${a.id}`} className="group">
+    <Link to={`/judge/review/${a.id}`} className="group min-w-0">
       <Card className={clsx("h-full p-4 transition-all group-hover:border-line-strong group-hover:shadow-pop", attention && "border-warn-line")}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

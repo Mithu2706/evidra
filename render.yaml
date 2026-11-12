@@ -1,0 +1,42 @@
+# Render Blueprint: Evidra backend as a public, password-less demo.
+# Frontend is hosted separately (Vercel, see frontend/vercel.json).
+#
+# The free plan sleeps after ~15 minutes without traffic; the next request
+# wakes it (~50 s). Every start rebuilds the fictional demo data, so each wake
+# begins from a clean state. Nothing here is persistent; do not put real data
+# in this service.
+services:
+  - type: web
+    name: evidra-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: EVIDRA_ENV
+        value: production
+      - key: EVIDRA_DEMO_MODE
+        value: "true"
+      - key: EVIDRA_AI_ENGINE
+        value: heuristic
+      - key: EVIDRA_AUTO_SEED
+        value: "true"
+      # RapidOCR needs ~520 MB at peak, above the free plan's 512 MB.
+      - key: EVIDRA_OCR_ENGINE
+        value: none
+      # Writable, ephemeral paths; wiped on every restart (data is reseeded).
+      - key: EVIDRA_DATABASE_URL
+        value: sqlite:////tmp/evidra/evidra.db
+      - key: EVIDRA_STORAGE_DIR
+        value: /tmp/evidra/storage
+      # Token-signing key: Render generates a random value; never committed.
+      - key: EVIDRA_SECRET_KEY
+        generateValue: true
+      # The Vercel URL, e.g. https://evidra.vercel.app (no trailing slash).
+      # Set in the Render dashboard once the frontend is deployed.
+      - key: EVIDRA_CORS_ORIGINS
+        sync: false
